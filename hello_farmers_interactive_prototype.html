@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HELLO FARMERS — Everything Farming. One App.</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind Custom Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        forest: '#14532D',
+                        fresh: '#22C55E',
+                        leaf: '#65A30D',
+                        earth: '#F4E7CF',
+                        gold: '#F59E0B',
+                        offwhite: '#F8FAF7',
+                        charcoal: '#17221B',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom scrollbar and mobile frame styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F8FAF7;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #17221B;
+        }
+        .phone-frame {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 12px #1e293b;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.25s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col items-center justify-center overflow-x-hidden selection:bg-fresh selection:text-white">
+
+    <!-- Top Control Bar for Prototype Testing -->
+    <header class="w-full bg-charcoal text-offwhite py-2 px-4 flex flex-wrap items-center justify-between border-b border-forest/40 text-xs sm:text-sm z-50">
+        <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-1.5 font-bold text-fresh">
+                <i class="fa-solid fa-seedling"></i>
+                <span class="tracking-wide">HELLO FARMERS</span>
+            </div>
+            <span class="hidden md:inline-block px-2 py-0.5 bg-forest/80 rounded-full text-[11px] text-earth font-medium">Cattle Management Module v1.0</span>
+        </div>
+        
+        <!-- Screen Jump Navigator & Device Mode Switcher -->
+        <div class="flex items-center space-x-2 my-1 sm:my-0">
+            <label for="screenJump" class="text-xs text-earth/80 hidden sm:inline">Jump to:</label>
+            <select id="screenJump" onchange="switchScreen(this.value)" class="bg-forest text-offwhite px-2.5 py-1 rounded-md text-xs border border-leaf focus:outline-none focus:ring-1 focus:ring-fresh">
+                <option value="splash">1. Splash Screen</option>
+                <option value="landing">2. Landing Page</option>
+                <option value="signup">3. Sign Up</option>
+                <option value="verify">4. Account Verification</option>
+                <option value="onboarding">5. Farmer Onboarding</option>
+                <option value="dashboard" selected>6. Livestock Dashboard</option>
+                <option value="my_livestock">7. My Livestock</option>
+                <option value="add_animal">8. Add Animal Flow</option>
+                <option value="animal_profile">9. Animal Profile</option>
+                <option value="health">10. Health Records</option>
+                <option value="vaccination">11. Vaccination</option>
+                <option value="treatment">12. Treatment</option>
+                <option value="breeding">13. Breeding</option>
+                <option value="milk">14. Milk Production</option>
+                <option value="feed">15. Feed Management</option>
+                <option value="expenses">16. Expenses</option>
+                <option value="history">17. Complete History</option>
+                <option value="notifications">18. Notifications</option>
+                <option value="profile">19. Farmer Profile</option>
+                <option value="settings">20. Settings</option>
+            </select>
+
+            <button onclick="toggleDeviceMode()" id="deviceToggleBtn" class="bg-leaf hover:bg-leaf/80 text-offwhite px-3 py-1 rounded-md font-medium text-xs transition flex items-center space-x-1">
+                <i class="fa-solid fa-tablet-screen-button"></i>
+                <span id="deviceToggleText">Tablet/Desktop View</span>
+            </button>
+            
+            <button onclick="toggleOfflineMode()" id="offlineToggleBtn" class="bg-gold/90 hover:bg-gold text-charcoal px-2.5 py-1 rounded-md font-semibold text-xs transition flex items-center space-x-1" title="Simulate Offline/Online Sync State">
+                <i class="fa-solid fa-wifi" id="wifiIcon"></i>
+                <span id="wifiText">Online</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Application Container -->
+    <main class="flex-1 w-full flex items-center justify-center p-0 sm:p-4 overflow-y-auto">
+        
+        <!-- Mobile Frame Wrapper -->
+        <div id="appFrame" class="w-full sm:w-[412px] h-full sm:h-[845px] bg-offwhite flex flex-col relative sm:rounded-3xl phone-frame overflow-hidden transition-all duration-300">
+            
+            <!-- Offline Banner (Conditional) -->
+            <div id="offlineBanner" class="hidden bg-amber-600 text-white text-xs py-1.5 px-3 flex items-center justify-between z-40">
+                <div class="flex items-center space-x-1.5">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span id="offlineMsg">Working offline. Changes will sync when connected.</span>
+                </div>
+                <button onclick="triggerSync()" class="underline font-bold text-[11px] hover:text-earth">Sync Now</button>
+            </div>
+
+            <!-- Dynamic Dynamic App Content Rendered Here -->
+            <div id="screenContainer" class="flex-1 flex flex-col overflow-y-auto relative bg-offwhite">
+                <!-- Screen content injected via JavaScript -->
+            </div>
+
+            <!-- Global Toast / Modal Container -->
+            <div id="modalContainer" class="absolute inset-0 z-50 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-4"></div>
+            <div id="toastContainer" class="absolute bottom-16 left-4 right-4 z-50 flex flex-col items-center pointer-events-none"></div>
+
+        </div>
+    </main>
+
+    <!-- Application Logic & State -->
+    <script>
+        // Global App State
+        let currentScreen = 'dashboard';
+        let isDeviceMobile = true; // true = mobile frame, false = expanded responsive view
+        let isOffline = false;
+        let onboardingStep = 1;
+        let addAnimalStep = 1;
+        
+        // Mock User & Farm Data
+        const state = {
+            farmerName: "Juma Kiprono",
+            farmName: "Green Valley Dairy Farm",
+            country: "Kenya",
+            county: "Uasin Gishu",
+            farmingType: "Dairy",
+            cattleCount: 24,
+            animals: [
+                { id: "HF-025", name: "Bella", breed: "Friesian", sex: "Female", age: "3 years", weight: "420 kg", status: "Healthy", purpose: "Milk & Breeding", milkToday: "18 L", lastCheck: "Today", photo: "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=600&q=80" },
+                { id: "HF-024", name: "Daisy", breed: "Ayrshire", sex: "Female", age: "4 years", weight: "390 kg", status: "Needs Attention", purpose: "Milk Production", milkToday: "14 L", lastCheck: "Yesterday", photo: "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=600&q=80" },
+                { id: "HF-021", name: "Simba", breed: "Boran", sex: "Male", age: "2.5 years", weight: "510 kg", status: "Healthy", purpose: "Breeding", milkToday: "0 L", lastCheck: "3 days ago", photo: "https://images.unsplash.com/photo-1527153857715-3908f2ae5e61?auto=format&fit=crop&w=600&q=80" },
+                { id: "HF-018", name: "Luna", breed: "Jersey", sex: "Female", age: "5 years", weight: "350 kg", status: "Needs Attention", purpose: "Milk Production", milkToday: "12 L", lastCheck: "Today", photo: "https://images.unsplash.com/photo-1598425237682-4d0f779e51c8?auto=format&fit=crop&w=600&q=80" }
+            ],
+            selectedAnimalId: "HF-025",
+            notifications: [
+                { id: 1, type: "danger", title: "Vaccination due HF-025", desc: "FMD booster shot scheduled for 15 Oct", time: "Today", read: false },
+                { id: 2, type: "warning", title: "Health follow-up HF-024", desc: "Check hoof rot treatment response tomorrow", time: "Yesterday", read: false },
+                { id: 3, type: "warning", title: "Calving expected HF-018", desc: "Estimated delivery around 20 Oct", time: "3 days ago", read: true }
+            ],
+            expensesMonth: "KES 12,500",
+            recentActivities: [
+                { text: "Vaccination recorded Cow #HF-024", time: "Today, 10:30 AM", icon: "fa-syringe", color: "text-fresh" },
+                { text: "Milk production updated Cow #HF-025", time: "Today, 07:15 AM", icon: "fa-glass-water", color: "text-leaf" },
+                { text: "New animal added Bull #HF-025", time: "Yesterday", icon: "fa-circle-plus", color: "text-forest" }
+            ]
+        };
+
+        // Navigation Controller
+        function switchScreen(screenName) {
+            currentScreen = screenName;
+            document.getElementById('screenJump').value = screenName;
+            renderScreen();
+            
+            // Scroll to top of container
+            const container = document.getElementById('screenContainer');
+            if(container) container.scrollTop = 0;
+        }
+
+        // Toggle Device View
+        function toggleDeviceMode() {
+            isDeviceMobile = !isDeviceMobile;
+            const frame = document.getElementById('appFrame');
+            const btnText = document.getElementById('deviceToggleText');
+            
+            if (!isDeviceMobile) {
+                frame.classList.remove('sm:w-[412px]', 'sm:h-[845px]', 'sm:rounded-3xl', 'phone-frame');
+                frame.classList.add('w-full', 'h-full', 'rounded-none');
+                btnText.innerText = "Mobile View Frame";
+            } else {
+                frame.classList.add('sm:w-[412px]', 'sm:h-[845px]', 'sm:rounded-3xl', 'phone-frame');
+                frame.classList.remove('w-full', 'h-full', 'rounded-none');
+                btnText.innerText = "Tablet/Desktop View";
+            }
+        }
+
+        // Toggle Offline Simulation
+        function toggleOfflineMode() {
+            isOffline = !isOffline;
+            const banner = document.getElementById('offlineBanner');
+            const wifiIcon = document.getElementById('wifiIcon');
+            const wifiText = document.getElementById('wifiText');
+            
+            if(isOffline) {
+                banner.classList.remove('hidden');
+                wifiIcon.className = "fa-solid fa-triangle-exclamation text-charcoal";
+                wifiText.innerText = "Offline Mode";
+                showToast("Switched to offline mode. Data stored locally.", "warning");
+            } else {
+                banner.classList.add('hidden');
+                wifiIcon.className = "fa-solid fa-wifi";
+                wifiText.innerText = "Online";
+                showToast("Back online. Synchronized successfully!", "success");
+            }
+        }
+
+        function triggerSync() {
+            showToast("Synchronizing 3 records with cloud...", "info");
+            setTimeout(() => {
+                showToast("All records successfully synchronized!", "success");
+            }, 1200);
+        }
+
+        // Toast Notification Helper
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            let bgClass = 'bg-forest text-offwhite';
+            let icon = 'fa-circle-check';
+            if(type === 'warning') { bgClass = 'bg-gold text-charcoal'; icon = 'fa-triangle-exclamation'; }
+            if(type === 'info') { bgClass = 'bg-leaf text-offwhite'; icon = 'fa-circle-info'; }
+            
+            toast.className = `${bgClass} text-xs py-2.5 px-4 rounded-xl shadow-lg flex items-center space-x-2 my-1 pointer-events-auto animate-fade-in font-medium`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Main Render Engine
+        function renderScreen() {
+            const container = document.getElementById('screenContainer');
+            let html = '';
+
+            switch(currentScreen) {
+                case 'splash':
+                    html = renderSplashScreen();
+                    break;
+                case 'landing':
+                    html = renderLandingPage();
+                    break;
+                case 'signup':
+                    html = renderSignUpScreen();
+                    break;
+                case 'verify':
+                    html = renderVerifyScreen();
+                    break;
+                case 'onboarding':
+                    html = renderOnboardingScreen();
+                    break;
+                case 'dashboard':
+                    html = renderDashboardScreen();
+                    break;
+                case 'my_livestock':
+                    html = renderMyLivestockScreen();
+                    break;
+                case 'add_animal':
+                    html = renderAddAnimalScreen();
+                    break;
+                case 'animal_profile':
+                    html = renderAnimalProfileScreen();
+                    break;
+                case 'health':
+                    html = renderSubModuleScreen('Health & Medical Status', 'fa-heart-pulse', renderHealthContent());
+                    break;
+                case 'vaccination':
+                    html = renderSubModuleScreen('Vaccination Schedule', 'fa-syringe', renderVaccinationContent());
+                    break;
+                case 'treatment':
+                    html = renderSubModuleScreen('Medical Treatments', 'fa-capsules', renderTreatmentContent());
+                    break;
+                case 'breeding':
+                    html = renderSubModuleScreen('Breeding & Calving', 'fa-venus-mars', renderBreedingContent());
+                    break;
+                case 'milk':
+                    html = renderSubModuleScreen('Milk Production Analytics', 'fa-glass-water', renderMilkContent());
+                    break;
+                case 'feed':
+                    html = renderSubModuleScreen('Feed & Nutrition Log', 'fa-wheat-awn', renderFeedContent());
+                    break;
+                case 'expenses':
+                    html = renderSubModuleScreen('Expenses & Financials', 'fa-wallet', renderExpensesContent());
+                    break;
+                case 'history':
+                    html = renderSubModuleScreen('Complete Animal History', 'fa-clock-rotate-left', renderHistoryContent());
+                    break;
+                case 'notifications':
+                    html = renderNotificationsScreen();
+                    break;
+                case 'profile':
+                    html = renderProfileScreen();
+                    break;
+                case 'settings':
+                    html = renderSettingsScreen();
+                    break;
+                default:
+                    html = renderDashboardScreen();
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderSplashScreen() {
+            return `
+                <div class="flex-1 bg-gradient-to-b from-forest via-forest to-charcoal text-offwhite flex flex-col items-center justify-between p-8 text-center">
+                    <div class="my-auto flex flex-col items-center space-y-6">
+                        <div class="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center text-fresh border border-fresh/30 shadow-2xl">
+                            <i class="fa-solid fa-cow text-5xl"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <h1 class="text-3xl font-bold tracking-tight">HELLO FARMERS</h1>
+                            <p class="text-earth/90 text-sm font-medium">Everything Farming. One App.</p>
+                        </div>
+                        <div class="pt-4 flex items-center space-x-2 text-xs text-earth/60">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Trusted by 10,000+ livestock farmers</span>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full space-y-3 pb-6">
+                        <button onclick="switchScreen('landing')" class="w-full bg-fresh hover:bg-fresh/90 text-charcoal font-semibold py-3.5 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                            <span>Get Started</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <button onclick="switchScreen('signup')" class="w-full bg-white/10 hover:bg-white/20 text-offwhite font-medium py-3 px-6 rounded-2xl transition">
+                            Create Account / Sign In
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLandingPage() {
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite">
+                    <!-- Header -->
+                    <header class="px-6 py-4 flex items-center justify-between border-b border-forest/10 bg-white">
+                        <div class="flex items-center space-x-2 text-forest font-bold text-lg">
+                            <div class="w-8 h-8 bg-forest text-fresh rounded-xl flex items-center justify-center">
+                                <i class="fa-solid fa-seedling"></i>
+                            </div>
+                            <span>Hello Farmers</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="switchScreen('signup')" class="text-xs font-semibold text-forest hover:text-fresh px-3 py-1.5">Sign In</button>
+                            <button onclick="switchScreen('signup')" class="bg-forest text-offwhite text-xs font-semibold px-4 py-2 rounded-xl shadow hover:bg-forest/90">Sign Up</button>
+                        </div>
+                    </header>
+
+                    <!-- Hero Section -->
+                    <div class="flex-1 p-6 flex flex-col justify-between overflow-y-auto">
+                        <div class="space-y-6">
+                            <div class="relative rounded-3xl overflow-hidden shadow-lg h-56 bg-forest">
+                                <img src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=800&q=80" alt="Cattle in pasture" class="w-full h-full object-cover opacity-80">
+                                <div class="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent flex flex-col justify-end p-5">
+                                    <span class="bg-fresh/90 text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-full w-max mb-1">LIVESTOCK FIRST MODULE</span>
+                                    <h2 class="text-white font-bold text-xl leading-snug">Smart Livestock Farming Starts Here.</h2>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <h1 class="text-2xl font-bold text-charcoal tracking-tight">Welcome to Hello Farmers.</h1>
+                                <p class="text-sm text-charcoal/70 leading-relaxed">
+                                    Replace your physical notebook with a digital powerhouse. Track cattle health, milk yields, breeding cycles, vaccinations, and daily expenses effortlessly—even offline.
+                                </p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 pt-2">
+                                <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center">
+                                    <div class="w-10 h-10 rounded-full bg-forest/10 text-forest flex items-center justify-center mb-2">
+                                        <i class="fa-solid fa-heart-pulse"></i>
+                                    </div>
+                                    <h3 class="font-semibold text-xs text-charcoal">Health & Records</h3>
+                                    <p class="text-[11px] text-charcoal/60 mt-0.5">Never miss a vaccination or treatment date.</p>
+                                </div>
+                                <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center">
+                                    <div class="w-10 h-10 rounded-full bg-forest/10 text-forest flex items-center justify-center mb-2">
+                                        <i class="fa-solid fa-glass-water"></i>
+                                    </div>
+                                    <h3 class="font-semibold text-xs text-charcoal">Milk & Feed</h3>
+                                    <p class="text-[11px] text-charcoal/60 mt-0.5">Monitor daily production and feeding costs.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CTA Bottom -->
+                        <div class="pt-6 pb-2 space-y-3">
+                            <button onclick="switchScreen('signup')" class="w-full bg-forest hover:bg-forest/90 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                                <span>Get Started</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <div class="flex justify-center space-x-4 text-[11px] text-charcoal/60 pt-2">
+                                <a href="#" onclick="showToast('Terms & Conditions: Standard agricultural data privacy applies.', 'info')" class="hover:underline">Terms & Conditions</a>
+                                <span>•</span>
+                                <a href="#" onclick="showToast('Privacy Policy: Your farm data is securely encrypted.', 'info')" class="hover:underline">Privacy Policy</a>
+                                <span>•</span>
+                                <a href="#" onclick="showToast('Support: Contact support@hellofarmers.com', 'info')" class="hover:underline">Contact</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSignUpScreen() {
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite p-6 justify-between overflow-y-auto">
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <button onclick="switchScreen('landing')" class="w-9 h-9 rounded-full bg-white border border-forest/10 flex items-center justify-center text-charcoal hover:bg-forest/5">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <span class="text-xs font-bold text-forest">Step 1 of 5</span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <h2 class="text-2xl font-bold text-charcoal">Create Your Account</h2>
+                            <p class="text-xs text-charcoal/70">Join thousands of farmers managing livestock smartly.</p>
+                        </div>
+
+                        <form onsubmit="event.preventDefault(); switchScreen('verify');" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Full Name</label>
+                                <input type="text" required placeholder="e.g. Juma Kiprono" value="Juma Kiprono" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal focus:outline-none focus:border-fresh focus:ring-1 focus:ring-fresh">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Phone Number</label>
+                                <input type="tel" required placeholder="+254 712 345 678" value="+254 712 345 678" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal focus:outline-none focus:border-fresh focus:ring-1 focus:ring-fresh">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Email Address (Optional)</label>
+                                <input type="email" placeholder="juma@example.com" value="juma@gmail.com" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal focus:outline-none focus:border-fresh focus:ring-1 focus:ring-fresh">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Password</label>
+                                <input type="password" required placeholder="••••••••" value="password123" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal focus:outline-none focus:border-fresh focus:ring-1 focus:ring-fresh">
+                            </div>
+
+                            <div class="flex items-start space-x-2 pt-1">
+                                <input type="checkbox" checked required id="terms" class="mt-0.5 rounded text-fresh focus:ring-fresh">
+                                <label for="terms" class="text-xs text-charcoal/70">
+                                    I agree to the <span class="text-forest font-semibold">Terms & Conditions</span> and <span class="text-forest font-semibold">Privacy Policy</span>.
+                                </label>
+                            </div>
+
+                            <button type="submit" class="w-full bg-forest hover:bg-forest/90 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2 mt-4">
+                                <span>Create Account</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="text-center pt-6 pb-2">
+                        <p class="text-xs text-charcoal/70">Already have an account? <a href="#" onclick="switchScreen('dashboard')" class="text-forest font-bold hover:underline">Sign In</a></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderVerifyScreen() {
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite p-6 justify-between overflow-y-auto">
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <button onclick="switchScreen('signup')" class="w-9 h-9 rounded-full bg-white border border-forest/10 flex items-center justify-center text-charcoal hover:bg-forest/5">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <span class="text-xs font-bold text-forest">Verification</span>
+                        </div>
+
+                        <div class="space-y-2 text-center sm:text-left">
+                            <div class="w-14 h-14 bg-forest/10 rounded-2xl flex items-center justify-center text-forest text-2xl mx-auto sm:mx-0 mb-4">
+                                <i class="fa-solid fa-shield-check"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold text-charcoal">Verify Your Account</h2>
+                            <p class="text-xs text-charcoal/70">We've sent a 6-digit verification code to <span class="font-semibold text-charcoal">+254 712 345 678</span>.</p>
+                        </div>
+
+                        <!-- OTP Inputs -->
+                        <div class="space-y-6 pt-4">
+                            <div class="flex justify-between space-x-2">
+                                <input type="text" maxlength="1" value="4" class="w-12 h-14 text-center text-xl font-bold bg-white border-2 border-fresh rounded-xl focus:outline-none">
+                                <input type="text" maxlength="1" value="8" class="w-12 h-14 text-center text-xl font-bold bg-white border-2 border-forest/20 rounded-xl focus:outline-none focus:border-fresh">
+                                <input type="text" maxlength="1" value="2" class="w-12 h-14 text-center text-xl font-bold bg-white border-2 border-forest/20 rounded-xl focus:outline-none focus:border-fresh">
+                                <input type="text" maxlength="1" value="9" class="w-12 h-14 text-center text-xl font-bold bg-white border-2 border-forest/20 rounded-xl focus:outline-none focus:border-fresh">
+                                <input type="text" maxlength="1" value="1" class="w-12 h-14 text-center text-xl font-bold bg-white border-2 border-forest/20 rounded-xl focus:outline-none focus:border-fresh">
+                                <input type="text" maxlength="1" value="5" class="w-12 h-14 text-center text-xl font-bold bg-white border-2 border-forest/20 rounded-xl focus:outline-none focus:border-fresh">
+                            </div>
+
+                            <div class="flex items-center justify-between text-xs">
+                                <button onclick="showToast('New verification code sent via SMS!', 'success')" class="text-forest font-semibold hover:underline">Resend Code</button>
+                                <span class="text-charcoal/50">Expires in 04:59</span>
+                            </div>
+
+                            <button onclick="showToast('Phone number verified successfully!', 'success'); switchScreen('onboarding');" class="w-full bg-forest hover:bg-forest/90 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                                <span>Verify Account</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center pt-6">
+                        <button onclick="switchScreen('signup')" class="text-xs text-charcoal/60 hover:underline">Change Phone Number</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOnboardingScreen() {
+            let content = '';
+            
+            if (onboardingStep === 1) {
+                content = `
+                    <div class="space-y-4 animate-fade-in">
+                        <span class="text-xs font-bold text-leaf uppercase tracking-wider">Step 1 of 4</span>
+                        <h2 class="text-xl font-bold text-charcoal">Tell us about yourself</h2>
+                        <p class="text-xs text-charcoal/70">Let's personalize your Hello Farmers profile.</p>
+                        
+                        <div class="space-y-3 pt-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Farmer Name</label>
+                                <input type="text" id="ob_name" value="${state.farmerName}" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Country</label>
+                                <input type="text" id="ob_country" value="${state.country}" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">County / Region</label>
+                                <input type="text" id="ob_county" value="${state.county}" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Town / Area</label>
+                                <input type="text" value="Eldoret" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (onboardingStep === 2) {
+                content = `
+                    <div class="space-y-4 animate-fade-in">
+                        <span class="text-xs font-bold text-leaf uppercase tracking-wider">Step 2 of 4</span>
+                        <h2 class="text-xl font-bold text-charcoal">Tell us about your farm</h2>
+                        <p class="text-xs text-charcoal/70">Configure your initial cattle operation.</p>
+                        
+                        <div class="space-y-3 pt-2">
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Farm Name</label>
+                                <input type="text" id="ob_farmname" value="${state.farmName}" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Approximate Number of Cattle</label>
+                                <input type="number" id="ob_count" value="${state.cattleCount}" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">What type of cattle farming do you do?</label>
+                                <div class="grid grid-cols-3 gap-2 pt-1">
+                                    <button type="button" onclick="selectFarmingType('Dairy')" id="typeDairy" class="p-3 rounded-xl border text-xs font-semibold transition ${state.farmingType === 'Dairy' ? 'bg-forest text-white border-forest' : 'bg-white text-charcoal border-forest/20'}">Dairy</button>
+                                    <button type="button" onclick="selectFarmingType('Beef')" id="typeBeef" class="p-3 rounded-xl border text-xs font-semibold transition ${state.farmingType === 'Beef' ? 'bg-forest text-white border-forest' : 'bg-white text-charcoal border-forest/20'}">Beef</button>
+                                    <button type="button" onclick="selectFarmingType('Both')" id="typeBoth" class="p-3 rounded-xl border text-xs font-semibold transition ${state.farmingType === 'Both' ? 'bg-forest text-white border-forest' : 'bg-white text-charcoal border-forest/20'}">Both</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (onboardingStep === 3) {
+                content = `
+                    <div class="space-y-4 animate-fade-in">
+                        <span class="text-xs font-bold text-leaf uppercase tracking-wider">Step 3 of 4</span>
+                        <h2 class="text-xl font-bold text-charcoal">What's your farming experience?</h2>
+                        <p class="text-xs text-charcoal/70">Help us tailor insights to your experience level.</p>
+                        
+                        <div class="space-y-2.5 pt-2">
+                            <label class="flex items-center p-3.5 bg-white border border-forest/20 rounded-2xl cursor-pointer hover:border-fresh transition">
+                                <input type="radio" name="exp" checked class="text-fresh focus:ring-fresh">
+                                <div class="ml-3">
+                                    <span class="block text-xs font-bold text-charcoal">Beginner</span>
+                                    <span class="block text-[11px] text-charcoal/60">I'm just starting out in cattle farming.</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3.5 bg-white border border-forest/20 rounded-2xl cursor-pointer hover:border-fresh transition">
+                                <input type="radio" name="exp" class="text-fresh focus:ring-fresh">
+                                <div class="ml-3">
+                                    <span class="block text-xs font-bold text-charcoal">Intermediate</span>
+                                    <span class="block text-[11px] text-charcoal/60">I've been farming for some time.</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3.5 bg-white border border-forest/20 rounded-2xl cursor-pointer hover:border-fresh transition">
+                                <input type="radio" name="exp" class="text-fresh focus:ring-fresh">
+                                <div class="ml-3">
+                                    <span class="block text-xs font-bold text-charcoal">Experienced</span>
+                                    <span class="block text-[11px] text-charcoal/60">I have substantial farming experience.</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3.5 bg-white border border-forest/20 rounded-2xl cursor-pointer hover:border-fresh transition">
+                                <input type="radio" name="exp" class="text-fresh focus:ring-fresh">
+                                <div class="ml-3">
+                                    <span class="block text-xs font-bold text-charcoal">Commercial</span>
+                                    <span class="block text-[11px] text-charcoal/60">I operate a large commercial farm.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                `;
+            } else {
+                content = `
+                    <div class="space-y-6 text-center py-6 animate-fade-in">
+                        <div class="w-20 h-20 bg-fresh/10 text-fresh rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-inner">
+                            <i class="fa-solid fa-cow"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <h2 class="text-2xl font-bold text-charcoal">You're all set!</h2>
+                            <p class="text-xs text-charcoal/70 max-w-xs mx-auto">Your livestock farm <span class="font-bold text-forest">"${state.farmName}"</span> is ready for Hello Farmers.</p>
+                        </div>
+                        <div class="bg-forest/5 p-4 rounded-2xl text-left space-y-2 border border-forest/10">
+                            <div class="flex justify-between text-xs"><span class="text-charcoal/60">Farmer:</span><span class="font-bold text-charcoal">${state.farmerName}</span></div>
+                            <div class="flex justify-between text-xs"><span class="text-charcoal/60">Location:</span><span class="font-bold text-charcoal">${state.county}, ${state.country}</span></div>
+                            <div class="flex justify-between text-xs"><span class="text-charcoal/60">Initial Herd:</span><span class="font-bold text-charcoal">${state.cattleCount} Cattle (${state.farmingType})</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite p-6 justify-between overflow-y-auto">
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <button onclick="handleOnboardingBack()" class="w-9 h-9 rounded-full bg-white border border-forest/10 flex items-center justify-center text-charcoal hover:bg-forest/5">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <span class="text-xs font-semibold text-forest">Step ${onboardingStep} of 4</span>
+                        </div>
+
+                        ${content}
+                    </div>
+
+                    <div class="pt-6">
+                        <button onclick="handleOnboardingNext()" class="w-full bg-forest hover:bg-forest/90 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                            <span>${onboardingStep === 4 ? 'Go to My Farm' : 'Continue'}</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectFarmingType(type) {
+            state.farmingType = type;
+            renderScreen();
+        }
+
+        function handleOnboardingBack() {
+            if (onboardingStep > 1) {
+                onboardingStep--;
+                renderScreen();
+            } else {
+                switchScreen('verify');
+            }
+        }
+
+        function handleOnboardingNext() {
+            if (onboardingStep < 4) {
+                onboardingStep++;
+                renderScreen();
+            } else {
+                onboardingStep = 1;
+                switchScreen('dashboard');
+                showToast("Farm setup complete! Welcome to Hello Farmers.", "success");
+            }
+        }
+
+        function renderDashboardScreen() {
+            const healthyCount = state.animals.filter(a => a.status === 'Healthy').length;
+            const attentionCount = state.animals.length - healthyCount;
+
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite pb-20 overflow-y-auto">
+                    <!-- Top Bar -->
+                    <div class="bg-forest text-offwhite px-6 pt-6 pb-6 rounded-b-[2rem] shadow-md space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-fresh/20 border border-fresh/40 flex items-center justify-center text-fresh font-bold text-sm">
+                                    JK
+                                </div>
+                                <div>
+                                    <p class="text-[11px] text-earth/80">Good morning, Farmer 👋</p>
+                                    <h2 class="text-sm font-bold text-offwhite">${state.farmName}</h2>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="switchScreen('notifications')" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center relative text-offwhite">
+                                    <i class="fa-solid fa-bell"></i>
+                                    <span class="absolute top-2 right-2 w-2 h-2 bg-gold rounded-full ring-2 ring-forest"></span>
+                                </button>
+                                <button onclick="switchScreen('profile')" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-offwhite">
+                                    <i class="fa-solid fa-user"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Livestock Summary Cards -->
+                        <div class="grid grid-cols-3 gap-3 pt-2">
+                            <div onclick="switchScreen('my_livestock')" class="bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/15 transition">
+                                <span class="block text-[11px] text-earth/80 font-medium">Total Cattle</span>
+                                <span class="text-2xl font-bold text-white">${state.animals.length}</span>
+                            </div>
+                            <div onclick="switchScreen('my_livestock')" class="bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/15 transition">
+                                <span class="block text-[11px] text-fresh font-medium">Healthy</span>
+                                <span class="text-2xl font-bold text-white">${healthyCount}</span>
+                            </div>
+                            <div onclick="switchScreen('my_livestock')" class="bg-white/10 backdrop-blur-md p-3 rounded-2xl border border-white/10 cursor-pointer hover:bg-white/15 transition">
+                                <span class="block text-[11px] text-gold font-medium">Attention</span>
+                                <span class="text-2xl font-bold text-white">${attentionCount}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Body -->
+                    <div class="p-6 space-y-6">
+                        
+                        <!-- Primary CTA -->
+                        <button onclick="switchScreen('add_animal')" class="w-full bg-fresh hover:bg-fresh/90 text-charcoal font-bold py-4 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-3 text-base">
+                            <i class="fa-solid fa-circle-plus text-xl"></i>
+                            <span>+ Add New Animal</span>
+                        </button>
+
+                        <!-- Alerts Section -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-bold text-sm text-charcoal flex items-center space-x-2">
+                                    <i class="fa-solid fa-triangle-exclamation text-gold"></i>
+                                    <span>Attention Needed</span>
+                                </h3>
+                                <button onclick="switchScreen('notifications')" class="text-xs font-semibold text-forest hover:underline">View All</button>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <div class="bg-white p-3.5 rounded-2xl border border-forest/10 shadow-sm flex items-start space-x-3">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 mt-1.5 shrink-0"></span>
+                                    <div class="flex-1">
+                                        <h4 class="text-xs font-bold text-charcoal">2 animals require treatment</h4>
+                                        <p class="text-[11px] text-charcoal/60">Cow #HF-024 & HF-018 scheduled for veterinary follow-up.</p>
+                                    </div>
+                                    <button onclick="switchScreen('animal_profile')" class="text-xs bg-forest/10 hover:bg-forest text-forest hover:text-white px-2.5 py-1 rounded-lg font-semibold transition">View</button>
+                                </div>
+                                <div class="bg-white p-3.5 rounded-2xl border border-forest/10 shadow-sm flex items-start space-x-3">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-gold mt-1.5 shrink-0"></span>
+                                    <div class="flex-1">
+                                        <h4 class="text-xs font-bold text-charcoal">3 vaccinations coming up</h4>
+                                        <p class="text-[11px] text-charcoal/60">FMD booster due for herd batch starting Oct 15.</p>
+                                    </div>
+                                    <button onclick="switchScreen('vaccination')" class="text-xs bg-forest/10 hover:bg-forest text-forest hover:text-white px-2.5 py-1 rounded-lg font-semibold transition">Details</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="space-y-3">
+                            <h3 class="font-bold text-sm text-charcoal flex items-center space-x-2">
+                                <i class="fa-solid fa-clock-rotate-left text-forest"></i>
+                               <span>Recent Activity</span>
+                            </h3>
+                            <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-3">
+                                <div class="flex items-center space-x-3 text-xs pb-2.5 border-b border-forest/5">
+                                    <div class="w-8 h-8 rounded-full bg-fresh/10 text-fresh flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-syringe"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <span class="block font-bold text-charcoal">Vaccination recorded Cow #HF-024</span>
+                                        <span class="text-[10px] text-charcoal/50">Today, 10:30 AM</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3 text-xs pb-2.5 border-b border-forest/5">
+                                    <div class="w-8 h-8 rounded-full bg-leaf/10 text-leaf flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-glass-water"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <span class="block font-bold text-charcoal">Milk production updated Cow #HF-025</span>
+                                        <span class="text-[10px] text-charcoal/50">Today, 07:15 AM</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3 text-xs">
+                                    <div class="w-8 h-8 rounded-full bg-forest/10 text-forest flex items-center justify-center shrink-0">
+                                        <i class="fa-solid fa-circle-plus"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <span class="block font-bold text-charcoal">New animal added Bull #HF-025</span>
+                                        <span class="text-[10px] text-charcoal/50">Yesterday</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Navigation Bar -->
+                    ${renderBottomNav('dashboard')}
+                </div>
+            `;
+        }
+
+        let livestockFilter = 'All';
+        let livestockSearch = '';
+
+        function renderMyLivestockScreen() {
+            const filteredAnimals = state.animals.filter(a => {
+                const matchSearch = a.id.toLowerCase().includes(livestockSearch.toLowerCase()) || a.name.toLowerCase().includes(livestockSearch.toLowerCase()) || a.breed.toLowerCase().includes(livestockSearch.toLowerCase());
+                if (livestockFilter === 'Dairy') return matchSearch && a.purpose.includes('Milk');
+                if (livestockFilter === 'Beef') return matchSearch && a.purpose.includes('Beef');
+                if (livestockFilter === 'Attention') return matchSearch && a.status === 'Needs Attention';
+                return matchSearch;
+            });
+
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite pb-20 overflow-y-auto">
+                    <!-- Top Header -->
+                    <div class="bg-forest text-offwhite px-6 py-5 rounded-b-[2rem] shadow-md space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-bold">My Livestock</h2>
+                            <button onclick="switchScreen('add_animal')" class="bg-fresh text-charcoal px-3 py-1.5 rounded-xl font-bold text-xs shadow hover:bg-fresh/90 flex items-center space-x-1">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Add Animal</span>
+                            </button>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="relative">
+                            <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-charcoal/40 text-sm"></i>
+                            <input type="text" oninput="livestockSearch = this.value; renderScreen();" value="${livestockSearch}" placeholder="Search animal ID, name or breed..." class="w-full bg-white text-charcoal text-xs rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-fresh">
+                        </div>
+
+                        <!-- Filter Tabs -->
+                        <div class="flex space-x-2 overflow-x-auto pb-1 text-xs">
+                            <button onclick="livestockFilter='All'; renderScreen();" class="px-3.5 py-1.5 rounded-lg font-semibold transition whitespace-nowrap ${livestockFilter === 'All' ? 'bg-fresh text-charcoal' : 'bg-white/10 text-white hover:bg-white/20'}">All (${state.animals.length})</button>
+                            <button onclick="livestockFilter='Dairy'; renderScreen();" class="px-3.5 py-1.5 rounded-lg font-semibold transition whitespace-nowrap ${livestockFilter === 'Dairy' ? 'bg-fresh text-charcoal' : 'bg-white/10 text-white hover:bg-white/20'}">Dairy</button>
+                            <button onclick="livestockFilter='Beef'; renderScreen();" class="px-3.5 py-1.5 rounded-lg font-semibold transition whitespace-nowrap ${livestockFilter === 'Beef' ? 'bg-fresh text-charcoal' : 'bg-white/10 text-white hover:bg-white/20'}">Beef</button>
+                            <button onclick="livestockFilter='Attention'; renderScreen();" class="px-3.5 py-1.5 rounded-lg font-semibold transition whitespace-nowrap ${livestockFilter === 'Attention' ? 'bg-fresh text-charcoal' : 'bg-white/10 text-white hover:bg-white/20'}">Attention</button>
+                        </div>
+                    </div>
+
+                    <!-- Animal Cards List -->
+                    <div class="p-6 space-y-3 flex-1">
+                        ${filteredAnimals.length === 0 ? `
+                            <div class="text-center py-12 space-y-4">
+                                <div class="w-16 h-16 bg-forest/10 rounded-2xl flex items-center justify-center text-forest text-2xl mx-auto">
+                                    <i class="fa-solid fa-cow"></i>
+                                </div>
+                                <div class="space-y-1">
+                                    <h3 class="font-bold text-sm text-charcoal">No animals found</h3>
+                                    <p class="text-xs text-charcoal/60">Try adjusting your search or filter criteria.</p>
+                                </div>
+                            </div>
+                        ` : filteredAnimals.map(a => `
+                            <div onclick="state.selectedAnimalId='${a.id}'; switchScreen('animal_profile');" class="bg-white p-3.5 rounded-2xl border border-forest/10 shadow-sm flex items-center space-x-3 cursor-pointer hover:border-fresh transition">
+                                <img src="${a.photo}" alt="${a.id}" class="w-14 h-14 rounded-xl object-cover border border-forest/10" onerror="this.src='https://placehold.co/100x100/14532D/F8FAF7?text=Cattle'">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-bold text-xs text-charcoal">${a.id} ${a.name ? '— ' + a.name : ''}</h4>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${a.status === 'Healthy' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${a.status === 'Healthy' ? '🟢 Healthy' : '🟡 Attention'}</span>
+                                    </div>
+                                    <p class="text-[11px] text-charcoal/60 truncate mt-0.5">${a.breed} • ${a.sex} • ${a.age}</p>
+                                    <div class="flex items-center justify-between mt-1 pt-1 border-t border-forest/5 text-[10px] text-charcoal/50">
+                                        <span>Weight: ${a.weight}</span>
+                                        <span class="text-forest font-semibold">View Profile →</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    ${renderBottomNav('my_livestock')}
+                </div>
+            `;
+        }
+
+        let newAnimalForm = { id: 'HF-026', name: '', breed: 'Friesian', sex: 'Female', dob: '2023-05-12', age: '3 years', weight: '400 kg', condition: 'Healthy', purpose: 'Milk Production' };
+
+        function renderAddAnimalScreen() {
+            let stepContent = '';
+            if (addAnimalStep === 1) {
+                stepContent = `
+                    <div class="space-y-4 animate-fade-in">
+                        <h3 class="font-bold text-sm text-charcoal">Step 1 — Basic Information</h3>
+                        <div>
+                            <label class="block text-xs font-semibold text-charcoal/80 mb-1">Animal ID (Required)</label>
+                            <input type="text" id="na_id" value="${newAnimalForm.id}" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-charcoal/80 mb-1">Animal Name (Optional)</label>
+                            <input type="text" id="na_name" placeholder="e.g. Bessie" value="${newAnimalForm.name}" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-charcoal/80 mb-1">Breed</label>
+                            <select id="na_breed" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                                <option ${newAnimalForm.breed==='Friesian'?'selected':''}>Friesian</option>
+                                <option ${newAnimalForm.breed==='Ayrshire'?'selected':''}>Ayrshire</option>
+                                <option ${newAnimalForm.breed==='Jersey'?'selected':''}>Jersey</option>
+                                <option ${newAnimalForm.breed==='Guernsey'?'selected':''}>Guernsey</option>
+                                <option ${newAnimalForm.breed==='Boran'?'selected':''}>Boran</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Sex</label>
+                                <select id="na_sex" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                                    <option>Female</option>
+                                    <option>Male</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-charcoal/80 mb-1">Age</label>
+                                <input type="text" id="na_age" value="${newAnimalForm.age}" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (addAnimalStep === 2) {
+                stepContent = `
+                    <div class="space-y-4 animate-fade-in">
+                        <h3 class="font-bold text-sm text-charcoal">Step 2 — Physical & Health Information</h3>
+                        <div>
+                            <label class="block text-xs font-semibold text-charcoal/80 mb-1">Current Weight</label>
+                            <input type="text" value="${newAnimalForm.weight}" class="w-full bg-white border border-forest/20 rounded-xl px-4 py-3 text-sm text-charcoal">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-charcoal/80 mb-1">Health Status</label>
+                            <div class="grid grid-cols-3 gap-2 pt-1">
+                                <button type="button" class="p-3 rounded-xl border text-xs font-semibold bg-emerald-50 text-emerald-800 border-emerald-300">🟢 Healthy</button>
+                                <button type="button" class="p-3 rounded-xl border text-xs font-semibold bg-amber-50 text-amber-800 border-amber-200">🟡 Attention</button>
+                                <button type="button" class="p-3 rounded-xl border text-xs font-semibold bg-rose-50 text-rose-800 border-rose-200">🔴 Sick</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-charcoal/80 mb-1">Animal Photo</label>
+                            <div class="border-2 border-dashed border-forest/20 rounded-2xl p-6 text-center bg-white">
+                                <i class="fa-solid fa-camera text-2xl text-forest/40 mb-1"></i>
+                                <p class="text-xs text-charcoal/60">Tap to upload or snap cattle photo</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (addAnimalStep === 3) {
+                stepContent = `
+                    <div class="space-y-4 animate-fade-in">
+                        <h3 class="font-bold text-sm text-charcoal">Step 3 — Purpose & Production</h3>
+                        <div>
+                            <label class="block text-xs font-semibold text-charcoal/80 mb-1">What is this animal primarily used for?</label>
+                            <div class="space-y-2 pt-1">
+                                <label class="flex items-center p-3.5 bg-white border border-forest/20 rounded-xl cursor-pointer">
+                                    <input type="radio" name="purpose" checked class="text-fresh">
+                                    <span class="ml-3 text-xs font-bold text-charcoal">Milk Production & Dairy</span>
+                                </label>
+                                <label class="flex items-center p-3.5 bg-white border border-forest/20 rounded-xl cursor-pointer">
+                                    <input type="radio" name="purpose" class="text-fresh">
+                                    <span class="ml-3 text-xs font-bold text-charcoal">Breeding & Genetics</span>
+                                </label>
+                                <label class="flex items-center p-3.5 bg-white border border-forest/20 rounded-xl cursor-pointer">
+                                    <input type="radio" name="purpose" class="text-fresh">
+                                    <span class="ml-3 text-xs font-bold text-charcoal">Beef / Meat Production</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                stepContent = `
+                    <div class="space-y-4 animate-fade-in">
+                        <h3 class="font-bold text-sm text-charcoal">Step 4 — Review & Save</h3>
+                        <div class="bg-white p-4 rounded-2xl border border-forest/10 space-y-2.5 text-xs">
+                            <div class="flex justify-between pb-2 border-b border-forest/5"><span class="text-charcoal/60">Animal ID:</span><span class="font-bold text-charcoal">HF-026</span></div>
+                            <div class="flex justify-between pb-2 border-b border-forest/5"><span class="text-charcoal/60">Breed / Sex:</span><span class="font-bold text-charcoal">Friesian • Female</span></div>
+                            <div class="flex justify-between pb-2 border-b border-forest/5"><span class="text-charcoal/60">Age & Weight:</span><span class="font-bold text-charcoal">3 years • 400 kg</span></div>
+                            <div class="flex justify-between pb-2 border-b border-forest/5"><span class="text-charcoal/60">Health Status:</span><span class="font-bold text-emerald-600">🟢 Healthy</span></div>
+                            <div class="flex justify-between"><span class="text-charcoal/60">Purpose:</span><span class="font-bold text-charcoal">Milk Production</span></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite p-6 justify-between overflow-y-auto">
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between">
+                            <button onclick="if(addAnimalStep>1){addAnimalStep--;renderScreen();}else{switchScreen('my_livestock');}" class="w-9 h-9 rounded-full bg-white border border-forest/10 flex items-center justify-center text-charcoal">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <span class="text-xs font-bold text-forest">Add Animal — Step ${addAnimalStep} of 4</span>
+                        </div>
+
+                        ${stepContent}
+                    </div>
+
+                    <div class="pt-6 flex space-x-3">
+                        <button onclick="if(addAnimalStep<4){addAnimalStep++;renderScreen();}else{state.animals.push({id:'HF-026',name:'Bessie',breed:'Friesian',sex:'Female',age:'3 years',weight:'400 kg',status:'Healthy',purpose:'Milk',milkToday:'15 L',lastCheck:'Today',photo:'https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=600&q=80'});addAnimalStep=1;renderAnimalSuccessScreen();}" class="flex-1 bg-forest hover:bg-forest/90 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg transition flex items-center justify-center space-x-2">
+                            <span>${addAnimalStep === 4 ? 'Save Animal' : 'Continue'}</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAnimalSuccessScreen() {
+            const container = document.getElementById('screenContainer');
+            container.innerHTML = `
+                <div class="flex-1 flex flex-col bg-offwhite p-6 justify-center items-center text-center space-y-6 animate-fade-in">
+                    <div class="w-20 h-20 bg-fresh/10 text-fresh rounded-3xl flex items-center justify-center text-4xl shadow-inner">
+                        <i class="fa-solid fa-cow"></i>
+                    </div>
+                    <div class="space-y-2">
+                        <h2 class="text-2xl font-bold text-charcoal">Animal Added Successfully</h2>
+                        <p class="text-xs text-charcoal/70">HF-026 has been successfully registered to your livestock database.</p>
+                    </div>
+                    <div class="w-full space-y-3 pt-4">
+                        <button onclick="state.selectedAnimalId='HF-026'; switchScreen('animal_profile');" class="w-full bg-forest hover:bg-forest/90 text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg transition">View Animal Profile</button>
+                        <button onclick="switchScreen('add_animal')" class="w-full bg-white border border-forest/20 text-charcoal font-semibold py-3.5 px-6 rounded-2xl hover:bg-forest/5 transition">Add Another Animal</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAnimalProfileScreen() {
+            const animal = state.animals.find(a => a.id === state.selectedAnimalId) || state.animals[0];
+
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite pb-20 overflow-y-auto">
+                    <!-- Header -->
+                    <div class="bg-forest text-offwhite p-6 rounded-b-[2rem] shadow-md space-y-4">
+                        <div class="flex items-center justify-between">
+                            <button onclick="switchScreen('my_livestock')" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <span class="text-xs font-bold text-fresh">Animal Profile</span>
+                            <button onclick="showToast('Animal record edited successfully.', 'info')" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center space-x-4">
+                            <img src="${animal.photo}" alt="${animal.id}" class="w-20 h-20 rounded-2xl object-cover border-2 border-fresh shadow" onerror="this.src='https://placehold.co/100x100/14532D/F8FAF7?text=Cattle'">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <h2 class="text-lg font-bold">${animal.id} ${animal.name ? '— ' + animal.name : ''}</h2>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold ${animal.status === 'Healthy' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">${animal.status}</span>
+                                </div>
+                                <p class="text-xs text-earth/80 mt-0.5">${animal.breed} • ${animal.sex} • ${animal.age}</p>
+                                <p class="text-[11px] text-fresh font-medium mt-1">Purpose: ${animal.purpose}</p>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="grid grid-cols-4 gap-2 pt-2">
+                            <div class="bg-white/10 p-2.5 rounded-xl text-center">
+                                <span class="block text-[10px] text-earth/70">Weight</span>
+                                <span class="text-xs font-bold text-white">${animal.weight}</span>
+                            </div>
+                            <div class="bg-white/10 p-2.5 rounded-xl text-center">
+                                <span class="block text-[10px] text-earth/70">Milk/Day</span>
+                                <span class="text-xs font-bold text-white">${animal.milkToday}</span>
+                            </div>
+                            <div class="bg-white/10 p-2.5 rounded-xl text-center">
+                                <span class="block text-[10px] text-earth/70">Age</span>
+                                <span class="text-xs font-bold text-white">${animal.age}</span>
+                            </div>
+                            <div class="bg-white/10 p-2.5 rounded-xl text-center">
+                                <span class="block text-[10px] text-earth/70">Check</span>
+                                <span class="text-xs font-bold text-white">${animal.lastCheck}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Grid -->
+                    <div class="p-6 space-y-4">
+                        <h3 class="font-bold text-sm text-charcoal">Management Modules</h3>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="switchScreen('health')" class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center hover:border-fresh transition">
+                                <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-2 text-base">
+                                    <i class="fa-solid fa-heart-pulse"></i>
+                                </div>
+                                <span class="font-bold text-xs text-charcoal">Health</span>
+                                <span class="text-[10px] text-charcoal/50">Status & checks</span>
+                            </button>
+
+                            <button onclick="switchScreen('vaccination')" class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center hover:border-fresh transition">
+                                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2 text-base">
+                                    <i class="fa-solid fa-syringe"></i>
+                                </div>
+                                <span class="font-bold text-xs text-charcoal">Vaccination</span>
+                                <span class="text-[10px] text-charcoal/50">Schedule & doses</span>
+                            </button>
+
+                            <button onclick="switchScreen('treatment')" class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center hover:border-fresh transition">
+                                <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-2 text-base">
+                                    <i class="fa-solid fa-capsules"></i>
+                                </div>
+                                <span class="font-bold text-xs text-charcoal">Treatment</span>
+                                <span class="text-[10px] text-charcoal/50">Medication logs</span>
+                            </button>
+
+                            <button onclick="switchScreen('breeding')" class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center hover:border-fresh transition">
+                                <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-2 text-base">
+                                    <i class="fa-solid fa-venus-mars"></i>
+                                </div>
+                                <span class="font-bold text-xs text-charcoal">Breeding</span>
+                                <span class="text-[10px] text-charcoal/50">AI & Calving</span>
+                            </button>
+
+                            <button onclick="switchScreen('milk')" class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center hover:border-fresh transition">
+                                <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2 text-base">
+                                    <i class="fa-solid fa-glass-water"></i>
+                                </div>
+                                <span class="font-bold text-xs text-charcoal">Milk Production</span>
+                                <span class="text-[10px] text-charcoal/50">Yield analytics</span>
+                            </button>
+
+                            <button onclick="switchScreen('feed')" class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center hover:border-fresh transition">
+                                <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center mb-2 text-base">
+                                    <i class="fa-solid fa-wheat-awn"></i>
+                                </div>
+                                <span class="font-bold text-xs text-charcoal">Feed</span>
+                                <span class="text-[10px] text-charcoal/50">Rations & costs</span>
+                            </button>
+
+                            <button onclick="switchScreen('expenses')" class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center hover:border-fresh transition">
+                                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mb-2 text-base">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </div>
+                                <span class="font-bold text-xs text-charcoal">Expenses</span>
+                                <span class="text-[10px] text-charcoal/50">Monthly tally</span>
+                            </button>
+
+                            <button onclick="switchScreen('history')" class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex flex-col items-center text-center hover:border-fresh transition">
+                                <div class="w-10 h-10 rounded-full bg-forest/10 text-forest flex items-center justify-center mb-2 text-base">
+                                    <i class="fa-solid fa-clock-rotate-left"></i>
+                                </div>
+                                <span class="font-bold text-xs text-charcoal">Complete History</span>
+                                <span class="text-[10px] text-charcoal/50">Digital notebook</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    ${renderBottomNav('my_livestock')}
+                </div>
+            `;
+        }
+
+        function renderSubModuleScreen(title, iconClass, contentHtml) {
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite pb-20 overflow-y-auto">
+                    <div class="bg-forest text-offwhite px-6 py-5 rounded-b-[2rem] shadow-md flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <button onclick="switchScreen('animal_profile')" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <h2 class="text-base font-bold">${title}</h2>
+                        </div>
+                        <i class="fa-solid ${iconClass} text-fresh text-xl"></i>
+                    </div>
+                    <div class="p-6 space-y-4 flex-1">
+                        ${contentHtml}
+                    </div>
+                    ${renderBottomNav('my_livestock')}
+                </div>
+            `;
+        }
+
+        function renderHealthContent() {
+            return `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-[11px] text-charcoal/60">Current Health Status</span>
+                            <h3 class="font-bold text-sm text-emerald-600 mt-0.5">🟢 Healthy</h3>
+                        </div>
+                        <button onclick="showToast('Health check logged successfully!', 'success')" class="bg-forest text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow hover:bg-forest/90">+ Record Check</button>
+                    </div>
+
+                    <h3 class="font-bold text-xs text-charcoal/70 uppercase tracking-wider pt-2">Health History Timeline</h3>
+                    <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-3">
+                        <div class="flex items-start space-x-3 pb-3 border-b border-forest/5 text-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1"></span>
+                            <div class="flex-1">
+                                <div class="flex justify-between font-bold text-charcoal"><span>Routine Health Check</span><span class="text-[10px] text-charcoal/50">06 Oct 2026</span></div>
+                                <p class="text-charcoal/60 text-[11px] mt-0.5">Vitals normal, shiny coat, excellent appetite.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 pb-3 border-b border-forest/5 text-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1"></span>
+                            <div class="flex-1">
+                                <div class="flex justify-between font-bold text-charcoal"><span>Weight Check (420 kg)</span><span class="text-[10px] text-charcoal/50">20 Sep 2026</span></div>
+                                <p class="text-charcoal/60 text-[11px] mt-0.5">+10 kg gain since last month.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 text-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1"></span>
+                            <div class="flex-1">
+                                <div class="flex justify-between font-bold text-charcoal"><span>Health Concern Resolved</span><span class="text-[10px] text-charcoal/50">02 Sep 2026</span></div>
+                                <p class="text-charcoal/60 text-[11px] mt-0.5">Minor hoof inflammation cleared after treatment.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderVaccinationContent() {
+            return `
+                <div class="space-y-4">
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Upcoming Due</span>
+                            <h3 class="font-bold text-xs text-amber-950 mt-0.5">🟡 FMD Booster Vaccination</h3>
+                            <p class="text-[11px] text-amber-900/80">Scheduled for 15 October 2026</p>
+                        </div>
+                        <button onclick="showToast('Vaccination reminder set!', 'success')" class="bg-amber-600 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow">Remind Me</button>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2">
+                        <h3 class="font-bold text-xs text-charcoal/70 uppercase tracking-wider">Vaccination History</h3>
+                        <button onclick="showToast('New vaccination record saved!', 'success')" class="bg-forest text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow">+ Add Record</button>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-3">
+                        <div class="flex items-start space-x-3 text-xs">
+                            <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-syringe"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between font-bold text-charcoal"><span>Lumpy Skin Disease Vaccine</span><span class="text-[10px] text-charcoal/50">12 Aug 2026</span></div>
+                                <p class="text-charcoal/60 text-[11px] mt-0.5">Administered by Dr. Kamau. Next due: Aug 2027.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTreatmentContent() {
+            return `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-xs text-charcoal/70 uppercase tracking-wider">Medical Treatment Logs</h3>
+                        <button onclick="showToast('Treatment record saved!', 'success')" class="bg-forest text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow">+ Record Treatment</button>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-3 text-xs">
+                        <div class="flex justify-between pb-2 border-b border-forest/5">
+                            <span class="font-bold text-charcoal">Hoof Rot Treatment</span>
+                            <span class="text-charcoal/50">18 Aug 2026</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px] text-charcoal/70">
+                            <div><strong>Condition:</strong> Lameness / Infection</div>
+                            <div><strong>Medication:</strong> Oxytetracycline spray</div>
+                            <div><strong>Dosage:</strong> Topical 3 days</div>
+                            <div><strong>Cost:</strong> KES 450</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBreedingContent() {
+            return `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-3 text-xs">
+                        <div class="flex items-center justify-between pb-2 border-b border-forest/5">
+                            <span class="font-bold text-charcoal">Breeding Status</span>
+                            <span class="px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full font-semibold text-[10px]">In Gestation</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[11px] text-charcoal/70">
+                            <div><strong>Last Breeding:</strong> 12 Aug 2026</div>
+                            <div><strong>Method:</strong> Artificial Insemination (AI)</div>
+                            <div><strong>Sire / Bull:</strong> Friesian Elite #12</div>
+                            <div><strong>Expected Calving:</strong> 20 May 2027</div>
+                        </div>
+                        <button onclick="showToast('Breeding record updated!', 'success')" class="w-full mt-2 bg-forest/10 hover:bg-forest text-forest hover:text-white font-semibold py-2 rounded-xl transition">Update Breeding Data</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMilkContent() {
+            return `
+                <div class="space-y-4">
+                    <div class="bg-forest text-offwhite p-5 rounded-2xl shadow-sm space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-earth/80">Today's Total Production</span>
+                            <button onclick="showToast('Milk production recorded!', 'success')" class="bg-fresh text-charcoal text-xs font-bold px-3 py-1.5 rounded-xl shadow">+ Record Milk</button>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <span class="text-3xl font-bold">18 L</span>
+                            <span class="text-xs text-earth/80">Morning: 10 L • Evening: 8 L</span>
+                        </div>
+                    </div>
+
+                    <h3 class="font-bold text-xs text-charcoal/70 uppercase tracking-wider pt-2">7-Day Yield Trend</h3>
+                    <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-2 text-xs">
+                        <div class="flex justify-between items-center pb-2 border-b border-forest/5"><span class="text-charcoal/60">Today (07 Oct)</span><span class="font-bold text-charcoal">18.0 Liters</span></div>
+                        <div class="flex justify-between items-center pb-2 border-b border-forest/5"><span class="text-charcoal/60">Yesterday</span><span class="font-bold text-charcoal">17.5 Liters</span></div>
+                        <div class="flex justify-between items-center pb-2 border-b border-forest/5"><span class="text-charcoal/60">05 Oct</span><span class="font-bold text-charcoal">18.2 Liters</span></div>
+                        <div class="flex justify-between items-center"><span class="text-charcoal/60">04 Oct</span><span class="font-bold text-charcoal">17.8 Liters</span></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFeedContent() {
+            return `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-xs text-charcoal/70 uppercase tracking-wider">Today's Feed Ration</h3>
+                        <button onclick="showToast('Feed record saved!', 'success')" class="bg-forest text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow">+ Record Feed</button>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-3 text-xs">
+                        <div class="flex justify-between items-center pb-2 border-b border-forest/5">
+                            <span class="font-bold text-charcoal">Dairy Meal Concentrate</span>
+                            <span class="font-bold text-forest">5 kg (KES 350)</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-forest/5">
+                            <span class="font-bold text-charcoal">Rhodes Grass Hay</span>
+                            <span class="font-bold text-forest">8 kg (KES 200)</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-charcoal">Silage</span>
+                            <span class="font-bold text-forest">12 kg (KES 300)</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderExpensesContent() {
+            return `
+                <div class="space-y-4">
+                    <div class="bg-emerald-900 text-white p-5 rounded-2xl shadow-sm space-y-2">
+                        <span class="text-xs text-earth/80">Total Expenses This Month</span>
+                        <h3 class="text-3xl font-bold">KES 12,500</h3>
+                        <p class="text-[11px] text-fresh">Feed: 65% • Medical: 25% • Vet: 10%</p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2">
+                        <h3 class="font-bold text-xs text-charcoal/70 uppercase tracking-wider">Expense Logs</h3>
+                        <button onclick="showToast('Expense added successfully!', 'success')" class="bg-forest text-white text-xs font-semibold px-3 py-1.5 rounded-xl shadow">+ Add Expense</button>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-3 text-xs">
+                        <div class="flex justify-between pb-2 border-b border-forest/5">
+                            <div><span class="font-bold block text-charcoal">Dairy Meal Supply (50kg)</span><span class="text-[10px] text-charcoal/50">Feed • 04 Oct 2026</span></div>
+                            <span class="font-bold text-rose-600">-KES 3,500</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <div><span class="font-bold block text-charcoal">Veterinary Consultation</span><span class="text-[10px] text-charcoal/50">Vet • 01 Oct 2026</span></div>
+                            <span class="font-bold text-rose-600">-KES 1,500</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderHistoryContent() {
+            return `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-xs text-charcoal/70 uppercase tracking-wider">HF-025 Complete Digital Notebook</h3>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-3 text-xs">
+                        <div class="flex items-start space-x-3 pb-3 border-b border-forest/5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mt-1"></span>
+                            <div class="flex-1">
+                                <div class="flex justify-between font-bold text-charcoal"><span>Health Check: Healthy</span><span class="text-[10px] text-charcoal/50">06 Oct</span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 pb-3 border-b border-forest/5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500 mt-1"></span>
+                            <div class="flex-1">
+                                <div class="flex justify-between font-bold text-charcoal"><span>Milk Production: 18 L</span><span class="text-[10px] text-charcoal/50">05 Oct</span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 pb-3 border-b border-forest/5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-orange-500 mt-1"></span>
+                            <div class="flex-1">
+                                <div class="flex justify-between font-bold text-charcoal"><span>Feed: Dairy Meal 5 kg</span><span class="text-[10px] text-charcoal/50">03 Oct</span></div>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-500 mt-1"></span>
+                            <div class="flex-1">
+                                <div class="flex justify-between font-bold text-charcoal"><span>Breeding: Artificial Insemination</span><span class="text-[10px] text-charcoal/50">28 Sep</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderNotificationsScreen() {
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite pb-20 overflow-y-auto">
+                    <div class="bg-forest text-offwhite px-6 py-5 rounded-b-[2rem] shadow-md flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <button onclick="switchScreen('dashboard')" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                            <h2 class="text-base font-bold">Notifications</h2>
+                        </div>
+                        <button onclick="showToast('All notifications marked as read', 'success')" class="text-xs text-fresh font-semibold hover:underline">Mark all read</button>
+                    </div>
+
+                    <div class="p-6 space-y-3 flex-1">
+                        ${state.notifications.map(n => `
+                            <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm flex items-start space-x-3 ${n.read ? 'opacity-70' : ''}">
+                                <span class="w-2.5 h-2.5 rounded-full ${n.type === 'danger' ? 'bg-rose-500' : 'bg-gold'} mt-1.5 shrink-0"></span>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="font-bold text-xs text-charcoal">${n.title}</h4>
+                                        <span class="text-[10px] text-charcoal/40">${n.time}</span>
+                                    </div>
+                                    <p class="text-[11px] text-charcoal/70 mt-0.5">${n.desc}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    ${renderBottomNav('dashboard')}
+                </div>
+            `;
+        }
+
+        function renderProfileScreen() {
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite pb-20 overflow-y-auto">
+                    <div class="bg-forest text-offwhite px-6 py-6 rounded-b-[2rem] shadow-md flex items-center space-x-4">
+                        <div class="w-16 h-16 rounded-2xl bg-fresh/20 border-2 border-fresh flex items-center justify-center text-fresh text-xl font-bold">
+                            JK
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold">${state.farmerName}</h2>
+                            <p class="text-xs text-earth/80">${state.farmName}</p>
+                            <p class="text-[11px] text-fresh mt-0.5">+254 712 345 678</p>
+                        </div>
+                    </div>
+
+                    <div class="p-6 space-y-4">
+                        <div class="bg-white rounded-2xl border border-forest/10 shadow-sm overflow-hidden text-xs">
+                            <div onclick="switchScreen('settings')" class="p-4 flex items-center justify-between border-b border-forest/5 cursor-pointer hover:bg-forest/5">
+                                <div class="flex items-center space-x-3 text-charcoal font-bold"><i class="fa-solid fa-cow text-forest"></i><span>My Farm Information</span></div>
+                                <i class="fa-solid fa-chevron-right text-charcoal/40"></i>
+                            </div>
+                            <div onclick="switchScreen('settings')" class="p-4 flex items-center justify-between border-b border-forest/5 cursor-pointer hover:bg-forest/5">
+                                <div class="flex items-center space-x-3 text-charcoal font-bold"><i class="fa-solid fa-bell text-forest"></i><span>Notifications & Alerts</span></div>
+                                <i class="fa-solid fa-chevron-right text-charcoal/40"></i>
+                            </div>
+                            <div onclick="switchScreen('settings')" class="p-4 flex items-center justify-between border-b border-forest/5 cursor-pointer hover:bg-forest/5">
+                                <div class="flex items-center space-x-3 text-charcoal font-bold"><i class="fa-solid fa-shield-halved text-forest"></i><span>Privacy & Security</span></div>
+                                <i class="fa-solid fa-chevron-right text-charcoal/40"></i>
+                            </div>
+                            <div onclick="switchScreen('settings')" class="p-4 flex items-center justify-between cursor-pointer hover:bg-forest/5">
+                                <div class="flex items-center space-x-3 text-charcoal font-bold"><i class="fa-solid fa-circle-question text-forest"></i><span>Help Center & Support</span></div>
+                                <i class="fa-solid fa-chevron-right text-charcoal/40"></i>
+                            </div>
+                        </div>
+
+                        <button onclick="renderSignOutModal()" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold py-3.5 px-6 rounded-2xl transition flex items-center justify-center space-x-2 text-xs">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Sign Out of Hello Farmers</span>
+                        </button>
+                    </div>
+
+                    ${renderBottomNav('profile')}
+                </div>
+            `;
+        }
+
+        function renderSettingsScreen() {
+            return `
+                <div class="flex-1 flex flex-col bg-offwhite pb-20 overflow-y-auto">
+                    <div class="bg-forest text-offwhite px-6 py-5 rounded-b-[2rem] shadow-md flex items-center space-x-3">
+                        <button onclick="switchScreen('profile')" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <h2 class="text-base font-bold">Farm Settings & Profile</h2>
+                    </div>
+
+                    <div class="p-6 space-y-4">
+                        <div class="bg-white p-4 rounded-2xl border border-forest/10 shadow-sm space-y-3 text-xs">
+                            <h3 class="font-bold text-charcoal">Farm Details</h3>
+                            <div>
+                                <label class="block text-charcoal/60 mb-1">Farm Name</label>
+                                <input type="text" value="${state.farmName}" class="w-full bg-offwhite border border-forest/20 rounded-xl px-3 py-2 text-charcoal">
+                            </div>
+                            <div>
+                                <label class="block text-charcoal/60 mb-1">County / Location</label>
+                                <input type="text" value="${state.county}, ${state.country}" class="w-full bg-offwhite border border-forest/20 rounded-xl px-3 py-2 text-charcoal">
+                            </div>
+                            <div>
+                                <label class="block text-charcoal/60 mb-1">Farming Focus</label>
+                                <input type="text" value="${state.farmingType} Cattle Farming" class="w-full bg-offwhite border border-forest/20 rounded-xl px-3 py-2 text-charcoal">
+                            </div>
+                            <button onclick="showToast('Farm settings saved successfully!', 'success')" class="w-full bg-forest text-white py-2.5 rounded-xl font-bold mt-2">Save Changes</button>
+                        </div>
+                    </div>
+
+                    ${renderBottomNav('profile')}
+                </div>
+            `;
+        }
+
+        function renderSignOutModal() {
+            const modal = document.getElementById('modalContainer');
+            modal.classList.remove('hidden');
+            modal.innerHTML = `
+                <div class="bg-white w-80 p-6 rounded-3xl shadow-2xl space-y-4 animate-fade-in text-center">
+                    <div class="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-2xl mx-auto">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="font-bold text-base text-charcoal">Sign out of Hello Farmers?</h3>
+                        <p class="text-xs text-charcoal/60">Your local records are safely secured.</p>
+                    </div>
+                    <div class="flex space-x-2 pt-2">
+                        <button onclick="document.getElementById('modalContainer').classList.add('hidden')" class="flex-1 bg-offwhite hover:bg-forest/5 text-charcoal font-semibold py-3 rounded-xl text-xs">Cancel</button>
+                        <button onclick="document.getElementById('modalContainer').classList.add('hidden'); switchScreen('landing'); showToast('Signed out successfully.', 'info');" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-semibold py-3 rounded-xl text-xs">Sign Out</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBottomNav(activeTab) {
+            return `
+                <nav class="absolute bottom-0 left-0 right-0 bg-white border-t border-forest/10 px-6 py-2.5 flex items-center justify-between text-[11px] shadow-lg z-30">
+                    <button onclick="switchScreen('dashboard')" class="flex flex-col items-center space-y-1 ${activeTab === 'dashboard' ? 'text-forest font-bold' : 'text-charcoal/50 hover:text-charcoal'}">
+                        <i class="fa-solid fa-house text-base"></i>
+                        <span>Home</span>
+                    </button>
+                    <button onclick="switchScreen('my_livestock')" class="flex flex-col items-center space-y-1 ${activeTab === 'my_livestock' ? 'text-forest font-bold' : 'text-charcoal/50 hover:text-charcoal'}">
+                        <i class="fa-solid fa-cow text-base"></i>
+                        <span>Livestock</span>
+                    </button>
+                    <button onclick="switchScreen('add_animal')" class="flex flex-col items-center space-y-1 text-fresh hover:scale-105 transition">
+                        <div class="w-10 h-10 rounded-full bg-forest text-fresh flex items-center justify-center shadow-md">
+                            <i class="fa-solid fa-plus text-base"></i>
+                        </div>
+                    </button>
+                    <button onclick="switchScreen('notifications')" class="flex flex-col items-center space-y-1 ${activeTab === 'notifications' ? 'text-forest font-bold' : 'text-charcoal/50 hover:text-charcoal'}">
+                        <i class="fa-solid fa-bell text-base"></i>
+                        <span>Alerts</span>
+                    </button>
+                    <button onclick="switchScreen('profile')" class="flex flex-col items-center space-y-1 ${activeTab === 'profile' ? 'text-forest font-bold' : 'text-charcoal/50 hover:text-charcoal'}">
+                        <i class="fa-solid fa-user text-base"></i>
+                        <span>Profile</span>
+                    </button>
+                </nav>
+            `;
+        }
+
+        // Initialize on Load
+        window.onload = function() {
+            renderScreen();
+        };
+    </script>
+</body>
+</html>
